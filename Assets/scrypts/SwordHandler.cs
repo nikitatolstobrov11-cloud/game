@@ -48,4 +48,15 @@ public class SwordHandler : MonoBehaviour
             Debug.Log("⚔️ Коллайдер меча ВЫКЛЮЧЕН");
         }
     }
+    public void PlaySwoosh()
+    {
+    if (swordObject != null)
+    {
+        SwordHit swordHit = swordObject.GetComponent<SwordHit>();
+        if (swordHit != null)
+            swordHit.PlaySwoosh();
+        else
+            Debug.LogWarning("На мече нет компонента SwordHit!");
+    }
+    }
 }
