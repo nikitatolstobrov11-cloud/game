@@ -10,32 +10,27 @@ public class SwordHit : MonoBehaviour
 
     private AudioSource swooshSource;
     private AudioSource hitSource;
-    private bool hasHit; // флаг, чтобы не дублировать удар
 
     void Start()
     {
-        // Создаём два независимых источника
+        // Создаём два независимых источника звука
         swooshSource = gameObject.AddComponent<AudioSource>();
         hitSource = gameObject.AddComponent<AudioSource>();
 
-        // Настройки
+        // Настройки для 3D-звука
         foreach (var src in new[] { swooshSource, hitSource })
         {
             src.playOnAwake = false;
-            src.spatialBlend = 1f;      // 3D
+            src.spatialBlend = 1f;    // 3D
             src.volume = 1f;
         }
     }
 
-    // Вызывается из анимации (каждый удар)
+    // Вызывается из анимации (через SwordHandler)
     public void PlaySwoosh()
     {
-        // Сбрасываем флаг удара для нового взмаха
-        hasHit = false;
-
         if (swooshSound != null)
         {
-            swooshSource.Stop(); // на всякий случай обрываем предыдущий
             swooshSource.PlayOneShot(swooshSound);
             Debug.Log("💨 Взмах");
         }
@@ -43,22 +38,15 @@ public class SwordHit : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Если уже ударили в этом взмахе — игнорируем (защита от двойного попадания)
-        if (hasHit) return;
-
         if (other.CompareTag("Enemy"))
         {
-            hasHit = true; // помечаем, что удар уже был
-
-            // Останавливаем взмах (чтобы не накладывался)
-            swooshSource.Stop();
-
             Enemy enemy = other.GetComponent<Enemy>();
             if (enemy != null)
             {
                 enemy.TakeDamage(damageAmount);
                 Debug.Log($"⚔️ Удар по врагу: {damageAmount}");
 
+                // Просто играем звук удара, не трогая взмах
                 if (hitSound != null)
                 {
                     hitSource.PlayOneShot(hitSound);

@@ -8,11 +8,11 @@ public class Interaction : MonoBehaviour
     public KeyCode interactKey = KeyCode.E;
 
     [Header("Sword Settings")]
-    public Transform swordHolder;
+    public Transform swordHolder;          // точка в правой руке
     private GameObject currentSword;
 
     [Header("Shield Settings")]
-    public Transform shieldHolder;
+    public Transform shieldHolder;         // точка в левой руке
     private GameObject currentShield;
 
     void Update()
@@ -40,6 +40,10 @@ public class Interaction : MonoBehaviour
 
     void PickUpSword(GameObject sword)
     {
+        // Анимация подбора
+        skeleton skel = FindObjectOfType<skeleton>();
+        if (skel != null) skel.StartPickUp();
+
         if (currentSword != null) Destroy(currentSword);
         AttachItem(sword, swordHolder);
         currentSword = sword;
@@ -52,9 +56,16 @@ public class Interaction : MonoBehaviour
 
     void PickUpShield(GameObject shield)
     {
+        skeleton skel = FindObjectOfType<skeleton>();
+        if (skel != null) skel.StartPickUp();
+
         if (currentShield != null) Destroy(currentShield);
         AttachItem(shield, shieldHolder);
         currentShield = shield;
+
+        ShieldHandler handler = FindObjectOfType<ShieldHandler>();
+        if (handler != null) handler.SetShield(shield);
+
         Debug.Log("Щит поднят!");
     }
 
