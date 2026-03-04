@@ -2,91 +2,50 @@ using UnityEngine;
 
 public class SwordHandler : MonoBehaviour
 {
-    [Header("Sword Settings")]
-    public GameObject swordObject;        // Меч в руке
-    public int damageAmount = 20;
+    private GameObject swordObject;      // ссылка на меч в руке
+    private Collider swordCollider;       // коллайдер меча
 
-    private Collider swordCollider;
-    private bool isDamaging = false;
-
-    void Start()
+    // Вызывается из Interaction при подборе меча
+    public void SetSword(GameObject sword)
     {
-        if (swordObject != null)
-            InitializeSword();
-    }
+        swordObject = sword;
+        swordCollider = sword.GetComponent<Collider>();
 
-    public void SetSword(GameObject newSword)
-    {
-        swordObject = newSword;
-        InitializeSword();
-        Debug.Log("✅ SwordHandler: меч привязан через SetSword: " + swordObject.name);
-    }
-
-    void InitializeSword()
-    {
-        if (swordObject == null) return;
-
-        swordCollider = swordObject.GetComponent<Collider>();
         if (swordCollider == null)
         {
             Debug.LogError("❌ SwordHandler: на мече нет коллайдера!");
             return;
         }
 
+        // Убеждаемся, что коллайдер помечен как триггер (иначе физика будет мешать)
         if (!swordCollider.isTrigger)
         {
-            Debug.LogWarning("⚠️ SwordHandler: коллайдер меча не Trigger. Включаем IsTrigger автоматически.");
+            Debug.LogWarning("⚠️ SwordHandler: коллайдер меча не Trigger. Включаем IsTrigger.");
             swordCollider.isTrigger = true;
         }
 
+        // Изначально коллайдер выключен — урон только в момент анимации
         swordCollider.enabled = false;
+        Debug.Log("✅ SwordHandler: меч привязан, коллайдер готов.");
     }
 
+    // Вызывается из анимации удара (EnableSwordDamage)
     public void EnableSwordDamage()
     {
         if (swordCollider != null)
         {
             swordCollider.enabled = true;
-            isDamaging = true;
-            Debug.Log("⚔️ Урон ВКЛЮЧЕН (коллайдер активирован)");
+            Debug.Log("⚔️ Коллайдер меча ВКЛЮЧЕН");
         }
     }
 
+    // Вызывается из анимации удара (DisableSwordDamage)
     public void DisableSwordDamage()
     {
         if (swordCollider != null)
         {
             swordCollider.enabled = false;
-            isDamaging = false;
-            Debug.Log("⚔️ Урон ВЫКЛЮЧЕН (коллайдер деактивирован)");
-        }
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        // Игнорируем, если урон сейчас не активен
-        if (!isDamaging) return;
-
-        // Игнорируем самого себя (меч не должен реагировать на свой коллайдер)
-        if (other.gameObject == swordObject) return;
-
-        // Игнорируем объекты с тегом Sword (на всякий случай, если где-то ещё есть такой тег)
-        if (other.CompareTag("Sword")) return;
-
-        Debug.Log($"🔍 SwordHandler: триггер с {other.name}, тег: {other.tag}");
-
-        if (other.CompareTag("Enemy"))
-        {
-            Enemy enemy = other.GetComponent<Enemy>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(damageAmount);
-                Debug.Log($"💥 Урон {damageAmount} нанесён врагу {other.name}");
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ SwordHandler: у объекта {other.name} тег Enemy, но нет компонента Enemy!");
-            }
+            Debug.Log("⚔️ Коллайдер меча ВЫКЛЮЧЕН");
         }
     }
 }
