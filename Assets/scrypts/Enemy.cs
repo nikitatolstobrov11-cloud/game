@@ -1,93 +1,49 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;  // для TextMeshPro
 
 public class Enemy : MonoBehaviour
 {
-    public int maxHealth = 100;
-    private int currentHealth;
+    public int health = 100;
+    public float destroyDelay = 1f;
 
-    [Header("Damage Popup")]
-    public GameObject damagePopupPrefab; // префаб с цифрами
-    public Transform popupSpawnPoint; // откуда вылетают цифры (если пусто — из центра врага)
+    [Header("Damage Popup 3D")]
+    public GameObject damagePopupPrefab;  // префаб 3D-текста
+    public Transform popupSpawnPoint;      // точка появления (необязательно)
+
+    private Rigidbody rb;
 
     void Start()
     {
-        currentHealth = maxHealth;
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
+            rb = gameObject.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
     }
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        Debug.Log($"💔 Враг получил {damage} урона. Осталось {currentHealth} HP");
+        health -= damage;
+        Debug.Log($"💔 Враг получил {damage} урона. Осталось {health} HP");
+
         ShowDamage(damage);
-        if (currentHealth <= 0) Die();
+
+        if (health <= 0)
+            Die();
     }
 
     void ShowDamage(int damage)
-    {
-    if (damagePopupPrefab == null)
-    {
-        Debug.LogError("❌ Нет префаба для цифр!");
-        return;
-    }
-
-    // Находим Canvas
-    Canvas canvas = FindObjectOfType<Canvas>();
-    if (canvas == null)
-    {
-        Debug.LogError("❌ Canvas не найден на сцене!");
-        return;
-    }
-
-    // Создаём экземпляр префаба как дочерний Canvas
-    GameObject popup = Instantiate(damagePopupPrefab, canvas.transform);
-    
-    // Получаем позицию НАД врагом в МИРОВЫХ координатах
-    Vector3 worldPos = transform.position + Vector3.up * 2f;
-    
-    // Конвертируем МИРОВЫЕ координаты в ЭКРАННЫЕ (пиксели)
-    Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
-    
-    // Получаем RectTransform у созданного префаба
-    RectTransform rectTransform = popup.GetComponent<RectTransform>();
-    if (rectTransform != null)
-    {
-        // Устанавливаем позицию в ЭКРАННЫХ координатах
-        rectTransform.position = screenPos;
-    }
-    else
-    {
-        Debug.LogError("❌ У префаба нет RectTransform!");
-        return;
-    }
-
-    // Устанавливаем текст
-    Text text = popup.GetComponentInChildren<Text>();
-    if (text != null)
-    {
-        text.text = damage.ToString();
-    }
-    else
-    {
-        TMPro.TMP_Text tmp = popup.GetComponentInChildren<TMPro.TMP_Text>();
-        if (tmp != null)
-        {
-            tmp.text = damage.ToString();
-        }
-        else
-        {
-            Debug.LogError("❌ В префабе нет компонента Text или TMP_Text!");
-            return;
-        }
-    }
-
-    // Уничтожаем через 1 секунду
-    Destroy(popup, 1f);
-    }
+{
+    if (damagePopupPrefab == null) return;
+    Vector3 spawnPos = popupSpawnPoint != null ? popupSpawnPoint.position : transform.position + Vector3.up * 0.1f;
+    GameObject popup = Instantiate(damagePopupPrefab, spawnPos, Quaternion.identity);
+    TextMeshPro tmp = popup.GetComponentInChildren<TextMeshPro>();
+    if (tmp != null) tmp.text = damage.ToString();
+}
 
     void Die()
     {
         Debug.Log("💀 Враг умер!");
-        Destroy(gameObject, 0.5f); // через 0.5 сек удаляем
+        Destroy(gameObject, destroyDelay);
     }
 }
