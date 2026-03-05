@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class Enemy : MonoBehaviour
@@ -10,9 +11,23 @@ public class Enemy : MonoBehaviour
     public Transform popupSpawnPoint;
     public float popupHeight = 1.2f;
 
+    [Header("Sounds")]
+    public AudioClip deathSound;
+
+    [Header("Health Bar")]
+    public GameObject healthBarPrefab;
+    public float healthBarHeight = 2.5f;
+    public float maxShowDistance = 15f;
+    public Transform playerRef;  // будет установлено из EnemyAI
+
     private Rigidbody rb;
     private Animator animator;
+    private AudioSource audioSource;
     private bool isDead = false;
+    private GameObject healthBarInstance;
+    private Slider healthSlider;
+
+    public bool IsDead => isDead;
 
     void Start()
     {
@@ -25,6 +40,35 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();
         if (animator == null)
             Debug.LogError("❌ На враге нет компонента Animator!");
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.spatialBlend = 1f; // 3D-звук
+
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform.position + Vector3.up * healthBarHeight, Quaternion.identity);
+            healthBarInstance.transform.SetParent(transform);
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = health;
+                healthSlider.value = health;
+            }
+            healthBarInstance.SetActive(false);
+        }
+    }
+
+    void Update()
+    {
+        if (isDead) return;
+
+        if (healthBarInstance != null && playerRef != null)
+        {
+            float dist = Vector3.Distance(transform.position, playerRef.position);
+            healthBarInstance.SetActive(dist <= maxShowDistance);
+        }
     }
 
     public void TakeDamage(int damage)
@@ -33,6 +77,9 @@ public class Enemy : MonoBehaviour
 
         health -= damage;
         Debug.Log($"💔 Враг получил {damage} урона. Осталось {health} HP");
+
+        if (healthSlider != null)
+            healthSlider.value = health;
 
         ShowDamage(damage);
 
@@ -51,8 +98,8 @@ public class Enemy : MonoBehaviour
     {
         if (damagePopupPrefab == null) return;
 
-        Vector3 spawnPos = popupSpawnPoint != null 
-            ? popupSpawnPoint.position 
+        Vector3 spawnPos = popupSpawnPoint != null
+            ? popupSpawnPoint.position
             : transform.position + Vector3.up * popupHeight;
 
         GameObject popup = Instantiate(damagePopupPrefab, spawnPos, Quaternion.identity);
@@ -67,15 +114,18 @@ public class Enemy : MonoBehaviour
 
         Debug.Log("💀 Враг умер!");
 
+        if (healthBarInstance != null)
+            Destroy(healthBarInstance);
+
         if (animator != null)
-        {
             animator.SetTrigger("Die");
-            // Можно отключить коллайдер, чтобы сквозь труп не проходили
-            Collider col = GetComponent<Collider>();
-            if (col != null) col.enabled = false;
-            // Rigidbody можно оставить или тоже отключить
-            rb.isKinematic = true; // уже true
+
+        if (deathSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(deathSound);
         }
-        // Объект НЕ УДАЛЯЕМ!
+
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
     }
 }

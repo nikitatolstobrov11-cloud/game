@@ -8,12 +8,26 @@ public class Interaction : MonoBehaviour
     public KeyCode interactKey = KeyCode.E;
 
     [Header("Sword Settings")]
-    public Transform swordHolder;          // точка в правой руке
+    public Transform swordHolder;
     private GameObject currentSword;
 
     [Header("Shield Settings")]
-    public Transform shieldHolder;         // точка в левой руке
+    public Transform shieldHolder;
     private GameObject currentShield;
+
+    [Header("Sounds")]
+    public AudioClip pickUpSound; // звук подбора
+
+    private AudioSource audioSource;
+
+    void Start()
+    {
+        // Добавляем AudioSource, если его нет
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+    }
 
     void Update()
     {
@@ -38,11 +52,20 @@ public class Interaction : MonoBehaviour
         }
     }
 
+    void PlayPickUpSound()
+    {
+        if (pickUpSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(pickUpSound);
+        }
+    }
+
     void PickUpSword(GameObject sword)
     {
-        // Анимация подбора
         skeleton skel = FindObjectOfType<skeleton>();
         if (skel != null) skel.StartPickUp();
+
+        PlayPickUpSound(); // звук подбора
 
         if (currentSword != null) Destroy(currentSword);
         AttachItem(sword, swordHolder);
@@ -56,17 +79,28 @@ public class Interaction : MonoBehaviour
 
     void PickUpShield(GameObject shield)
     {
-        skeleton skel = FindObjectOfType<skeleton>();
-        if (skel != null) skel.StartPickUp();
+    skeleton skel = FindObjectOfType<skeleton>();
 
-        if (currentShield != null) Destroy(currentShield);
-        AttachItem(shield, shieldHolder);
-        currentShield = shield;
+    // Если уже есть щит – сначала убираем флаг у старого
+    if (currentShield != null)
+    {
+        if (skel != null) skel.hasShield = false;
+        Destroy(currentShield);
+    }
 
-        ShieldHandler handler = FindObjectOfType<ShieldHandler>();
-        if (handler != null) handler.SetShield(shield);
+    // Запускаем анимацию подбора (если нужно)
+    if (skel != null) skel.StartPickUp();
 
-        Debug.Log("Щит поднят!");
+    AttachItem(shield, shieldHolder);
+    currentShield = shield;
+
+    // Устанавливаем флаг, что щит теперь есть
+    if (skel != null) skel.hasShield = true;
+
+    ShieldHandler handler = FindObjectOfType<ShieldHandler>();
+    if (handler != null) handler.SetShield(shield);
+
+    Debug.Log("Щит поднят!");
     }
 
     void AttachItem(GameObject item, Transform holder)
