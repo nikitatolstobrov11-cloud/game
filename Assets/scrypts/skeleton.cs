@@ -66,6 +66,9 @@ public class skeleton : MonoBehaviour
     private float rollDirX = 0f;
     private float rollDirZ = 1f;
 
+    // Блокировка ввода (для инвентаря и меню)
+    private bool inputLocked = false;
+
     public bool IsDead => isDead;
 
     void Start()
@@ -92,15 +95,20 @@ public class skeleton : MonoBehaviour
 
     void Update()
     {
+        // Если ввод заблокирован (инвентарь открыт) – ничего не делаем
+        if (inputLocked) return;
+
         if (isDead) return;
         if (isPickingUp) return;
 
+        // Регенерация стамины
         if (currentStamina < maxStamina)
         {
             currentStamina += staminaRegenRate * Time.deltaTime;
             if (currentStamina > maxStamina) currentStamina = maxStamina;
         }
 
+        // Обработка пробела (бег/ролл)
         HandleRunRollInput();
 
         if (isRolling)
@@ -109,6 +117,7 @@ public class skeleton : MonoBehaviour
             return;
         }
 
+        // ---- Lock-On: поворот персонажа к цели ----
         if (lockOnActive && lockOnTarget != null)
         {
             Vector3 directionToTarget = lockOnTarget.position - transform.position;
@@ -120,7 +129,8 @@ public class skeleton : MonoBehaviour
             }
         }
 
-        bool blockPressed = Input.GetMouseButton(1);
+        // Блок (ПКМ)
+        bool blockPressed = Input.GetMouseButton(1) && !IsUIOpen();
         isBlocking = blockPressed && hasShield && !isRolling;
         if (isBlocking && currentStamina > 0)
         {
@@ -129,6 +139,7 @@ public class skeleton : MonoBehaviour
         }
         animator.SetBool("isBlocking", isBlocking && currentStamina > 0);
 
+        // Движение
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
@@ -154,6 +165,7 @@ public class skeleton : MonoBehaviour
         newVel.z = movement.z * currentSpeed;
         rb.linearVelocity = newVel;
 
+        // Поворот персонажа от движения (только если лок не активен)
         if (!lockOnActive && movement.magnitude > 0.1f && v >= 0)
         {
             Quaternion targetRot = Quaternion.LookRotation(movement);
@@ -165,6 +177,7 @@ public class skeleton : MonoBehaviour
         animator.SetFloat("SpeedX", localVel.x);
         animator.SetBool("isRunning", isRunning && currentStamina > 0);
 
+        // Прыжок (Shift)
         if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded && !isRolling)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
@@ -172,12 +185,14 @@ public class skeleton : MonoBehaviour
             animator.SetTrigger("Jump");
         }
 
-        if (Input.GetMouseButtonDown(0) && isGrounded && currentStamina >= attackStaminaCost && !isRolling)
+        // Атака (ЛКМ)
+        if (Input.GetMouseButtonDown(0) && isGrounded && currentStamina >= attackStaminaCost && !isRolling && !IsUIOpen())
         {
             currentStamina -= attackStaminaCost;
             Attack();
         }
 
+        // Тестовый урон (H)
         if (Input.GetKeyDown(KeyCode.H))
         {
             TakeDamage(10);
@@ -186,6 +201,21 @@ public class skeleton : MonoBehaviour
         animator.SetBool("IsGrounded", isGrounded);
     }
 
+    // ---- Блокировка ввода (вызывается из Inventory) ----
+    public void SetInputLocked(bool locked)
+    {
+        inputLocked = locked;
+        // Опционально: сбрасываем анимации или состояния
+        if (locked)
+        {
+            // Например, останавливаем движение
+            rb.linearVelocity = Vector3.zero;
+            animator.SetFloat("SpeedZ", 0);
+            animator.SetFloat("SpeedX", 0);
+        }
+    }
+
+    // ---- Обработка пробела: быстрое нажатие -> ролл, удержание -> бег ----
     void HandleRunRollInput()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -209,6 +239,7 @@ public class skeleton : MonoBehaviour
         }
     }
 
+    // ---- Ролл ----
     void StartRoll()
     {
         isRolling = true;
@@ -258,6 +289,7 @@ public class skeleton : MonoBehaviour
         Debug.Log("Ролл закончен");
     }
 
+    // ---- Атака ----
     void Attack()
     {
         animator.SetTrigger("Attack");
@@ -274,6 +306,7 @@ public class skeleton : MonoBehaviour
         }
     }
 
+    // ---- Подбор предмета (вызывается из Interaction) ----
     public void StartPickUp()
     {
         if (isPickingUp || isDead) return;
@@ -287,9 +320,8 @@ public class skeleton : MonoBehaviour
         isPickingUp = false;
     }
 
-    // --- Публичные методы для вызова из EnemyAI ---
+    // --- Публичные методы для визуальной обратной связи (вызываются из EnemyAI) ---
 
-    /// <summary> Воспроизвести звук блока </summary>
     public void PlayBlockSound()
     {
         if (blockSound != null && blockAudioSource != null)
@@ -304,14 +336,12 @@ public class skeleton : MonoBehaviour
         }
     }
 
-    /// <summary> Воспроизвести анимацию блока </summary>
     public void PlayBlockAnimation()
     {
         if (animator != null)
             animator.SetTrigger("Block");
     }
 
-    /// <summary> Создать эффект частиц на щите </summary>
     public void PlayBlockEffect()
     {
         if (blockEffectPrefab == null) return;
@@ -345,6 +375,16 @@ public class skeleton : MonoBehaviour
         Debug.Log($"Скелет получил {damage} урона. Осталось {currentHealth} HP");
 
         if (currentHealth <= 0) Die();
+    }
+
+    bool IsUIOpen()
+    {
+        Inventory inv = GetComponent<Inventory>();
+        if (inv != null && inv.IsOpen) return true;
+
+        if (ChestUI.Instance != null && ChestUI.Instance.IsOpen) return true;
+
+        return false;
     }
 
     void Die()

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af64b34723f4edd49b8d36f255960d44, type: 3}
+  m_Name: SHLEM
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItem
+  itemName: "\u0428\u043B\u0435\u043C"
+  icon: {fileID: 6905562749588875414, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  maxStack: 99
+  description: "\u0445\u0443\u0439"
+  itemType: 2
+  rarity: 3
+  armorSlot: 1
+  attackBonus: 0
+  defenseBonus: 50
+  healthBonus: 0
+  armorPrefab: {fileID: 1499659323820411192, guid: 7c4efaf0ff9713a42a8749ac8e6fe9da, type: 3}

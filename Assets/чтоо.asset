@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af64b34723f4edd49b8d36f255960d44, type: 3}
+  m_Name: "\u0447\u0442\u043E\u043E"
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItem
+  itemName: flaska
+  icon: {fileID: -724805922, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  maxStack: 99
+  description: "\u0432\u0444\u0432\u0444"
+  itemType: 3
+  rarity: 1
+  armorSlot: 0
+  attackBonus: 0
+  defenseBonus: 0
+  healthBonus: 20
+  armorPrefab: {fileID: 0}
+  armorOffset: {x: 0, y: 0, z: 0}
+  armorRotation: {x: 0, y: 0, z: 0}

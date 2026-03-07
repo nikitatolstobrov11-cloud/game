@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af64b34723f4edd49b8d36f255960d44, type: 3}
+  m_Name: "\u0448\u0442\u0430\u043D\u044B"
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItem
+  itemName: "\u0448\u0442\u0430\u043D\u0438\u0448\u043A\u0438"
+  icon: {fileID: 210297501773229927, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  maxStack: 99
+  description: "\u043F\u0430\u043F\u0430\u043F\u0430\u043F\u0430\u043F"
+  itemType: 2
+  rarity: 3
+  armorSlot: 4
+  attackBonus: 0
+  defenseBonus: 20
+  healthBonus: 0
+  armorPrefab: {fileID: 2031652815331222946, guid: 2fd7b97df57b8b245954f8296e7d9be1, type: 3}
+  armorOffset: {x: 0, y: 0, z: 0}
+  armorRotation: {x: 0, y: 0, z: 0}

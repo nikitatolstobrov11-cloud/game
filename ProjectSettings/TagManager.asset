@@ -9,6 +9,9 @@ TagManager:
   - Sword
   - Shield
   - Enemy
+  - Item
+  - Soul
+  - Chest
   layers:
   - Default
   - TransparentFX
